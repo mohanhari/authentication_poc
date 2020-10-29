@@ -1,0 +1,31 @@
+version: v1.0
+name: First pipeline example
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+global_job_config:
+  prologue:
+    commands:
+      - checkout
+      - cache restore
+      - sem-version ruby 2.6.6
+      - bundle install --deployment -j 4 --path vendor/bundle
+blocks:
+  - name: Unit tests
+    dependencies: []
+    task:
+      prologue:
+        commands:
+          - sem-service start postgres 11
+          - psql -U postgres -h localhost -c "CREATE USER semaphore WITH PASSWORD 'semaphore';"
+          - psql -U postgres -h localhost -c "ALTER USER semaphore WITH SUPERUSER;"
+          - sem-service start redis
+          - sem-service start elasticsearch
+          - 'bundle exec rake db:drop'
+          - 'bundle exec rake db:create'
+          - 'bundle exec rake db:schema:load'
+      jobs:
+        - name: Unit tests
+          commands:
+            - bundle exec rspec

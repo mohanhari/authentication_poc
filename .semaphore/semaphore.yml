@@ -9,7 +9,7 @@ global_job_config:
     commands:
       - checkout
       - cache restore
-      - sem-version ruby 2.6.6
+      - sem-version ruby 2.5.3 -f
       - bundle install --deployment -j 4 --path vendor/bundle
 blocks:
   - name: Unit tests
